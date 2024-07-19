@@ -6,7 +6,7 @@ import (
 	"net/http"
 	"net/url"
 	"practice_go/binance_conn"
-
+	"time"
 )
 
 func wsHandler(message []byte) {
@@ -47,21 +47,20 @@ func testAPI(){
 
 }
 func main() {
-	// url := "wss://stream.binance.com:9443/ws/btcusdt@depth@100ms"
+	url := "wss://stream.binance.com:9443/ws/btcusdt@depth@100ms"
 	// url := "wss://ws-api.binance.com:443/ws-api/v3"
 	// url := "wss://stream.binance.com:9443/stream?streams=btcusdt@trade/btcusdt@aggTrade"
 
-	// doneCh, stopCh, err := binance_connect.WsClient(url, wsHandler, errorHandler)
-	// if err != nil {
-	// 	fmt.Println(err)
-	// 	return
-	// }
+	doneCh, stopCh, err := binance_connect.WsClient(url, wsHandler, errorHandler)
+	if err != nil {
+		fmt.Println(err)
+		return
+	}
 
-	// go func() {
-	// 	time.Sleep(30*time.Second)
-	// 	stopCh <- struct{}{}
-	// }()
+	go func() {
+		time.Sleep(30*time.Second)
+		stopCh <- struct{}{}
+	}()
 
-	// <- doneCh
-	testAPI()	
+	<- doneCh
 }

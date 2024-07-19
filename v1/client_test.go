@@ -1,32 +1,35 @@
-package binance_connect
+package binance_connect_test
 
 import (
 	"encoding/json"
 	"net/http"
 	"testing"
+
+	"practice_go/binance_conn"
+
 )
 
 var (
 	apiKey = "PkuSskgddMZuLdPV35rBdN1kqdtffKERnG0plDdTDqLIdqH1tfD4xavK1AjxNo1F"
 	secretKey = "1vs3rVyqEG64wDuWAQqlxY3ZclMAB3WjvVUTSdguz7IrWO7hyC9xeIjL8PtFSxPz"
-	testURL = "https://api1.binance.com"
+	testURL = "https://testnet.binance.vision"
 )
 
 
 func TestPingAPIServer(t *testing.T) {
-	client := NewClient(
+	client := binance_connect.NewClient(
 		apiKey, 
 		secretKey, 
 		testURL,
 	)
 
-	req := Request{
-		Method: http.MethodGet,
-		Endpoint: "/api/v3/ping",
-		SercType: None,
-	}
+	req := binance_connect.NewBinanceRequest(
+		http.MethodGet,
+		"/api/v3/ping",
+		binance_connect.None,
+	)
 
-	b_req, err := client.SetBinanceRequest(&req)
+	b_req, err := client.SetBinanceRequest(req)
 	if err != nil {
 		t.Error(err)
 		return
@@ -37,8 +40,10 @@ func TestPingAPIServer(t *testing.T) {
 		t.Error(err)
 		return
 	}
+	var j interface{}
+
 	if string(data) != "{}" {
-		t.Errorf("data: %s", data)
+		t.Errorf(binance_connect.PrettyPrint(j))
 	}
 }
 
@@ -47,19 +52,19 @@ type CheckServerTimeResponce struct {
 }
 
 func TestCheckServerTime(t *testing.T) {
-	client := NewClient(
+	client := binance_connect.NewClient(
 		apiKey, 
 		secretKey, 
 		testURL,
 	)
 
-	req := Request{
-		Method: http.MethodGet,
-		Endpoint: "/api/v3/time",
-		SercType: None,
-	}
+	req := binance_connect.NewBinanceRequest(
+		http.MethodGet,
+		"/api/v3/time",
+		binance_connect.None,
+	)
 
-	b_req, err := client.SetBinanceRequest(&req)
+	b_req, err := client.SetBinanceRequest(req)
 	if err != nil {
 		t.Error(err)
 		return
@@ -77,73 +82,23 @@ func TestCheckServerTime(t *testing.T) {
 		t.Error(err)
 		return
 	}
-	t.Logf("\ndata: %#v", j)
-}
-
-type ExchangeInfo struct {
-	TimeZone string `json:"timezone"`
-	ServerTime int64 `json:"serverTime"`
-	RateLimits []struct {
-		RateLimitType string `json:"rateLimitType"`
-		Interval string `json:"interval"`
-		Limit int `json:"limit"`
-		IntervalNum int `json:"intervalNum"`
-	} `json:"rateLimits"`
-	ExchangeFilters []struct {
-		FilterType string `json:"filterType"`
-		MinPrice string `json:"minPrice"`
-		MaxPrice string `json:"maxPrice"`
-		TickSize string `json:"tickSize"`
-	} `json:"exchangeFilters"`
-	Symbols []struct {
-		Symbol string `json:"symbol"`
-		Status string `json:"status"`
-		BaseAsset string `json:"baseAsset"`
-		BaseAssetPrecision int `json:"baseAssetPrecision"`
-		QuoteAsset string `json:"quoteAsset"`
-		QuotePrecision int `json:"quotePrecision"`
-		QuoteAssetPrecision int `json:"quoteAssetPrecision"`
-		BaseCommissionPrecision int `json:"baseCommissionPrecision"`
-
-		OrderTypes []string `json:"orderTypes"`
-		IceBergAllowed bool `json:"iceBergAllowed"`
-		OcoAllowed bool `json:"ocoAllowed"`
-		QuoteOrderQtyMarketAllowed bool `json:"quoteOrderQtyMarketAllowed"`
-		AllowTradingStop bool `json:"allowTradingStop"`
-		CancelReplaceService bool `json:"cancelReplaceService"`
-		IsStopTradingAllowed bool `json:"isSpotTradingAllowed"`
-		IsMarginTradingAllowed bool `json:"isMarginTradingAllowed"`
-		Filters []struct {
-			FilterType string `json:"filterType"`
-			MinPrice string `json:"minPrice"`
-			MaxPrice string `json:"maxPrice"`
-			TickSize string `json:"tickSize"`
-		} `json:"filters"`
-		Permissions []string `json:"permissions"`
-		PermissionSets [][]string `json:"permissionSets"`
-		DefaultSelfTradePreventionMode string `json:"defaultSelfTradePreventionMode"`
-		AllowedSelfTradePreventionModes []string `json:"allowedSelfTradePreventionModes"`
-	} `json:"symbols"`
-	Sors []struct {
-		BaseAsset string `json:"baseAsset"`
-		Symbols []string `json:"symbols"`
-	} `json:"sors"`
+	t.Logf(binance_connect.PrettyPrint(j))
 }
 
 func TestGetExchangeInfo(t *testing.T) {
-	client := NewClient(
+	client := binance_connect.NewClient(
 		apiKey, 
 		secretKey, 
 		testURL,
 	)
 
-	req := NewBinanceRequest(
+	req := binance_connect.NewBinanceRequest(
 		http.MethodGet,
 		"/api/v3/exchangeInfo",
-		None,
+		binance_connect.None,
 	)
 
-	req.Query.Set("symbol", "BTCUSDT")
+	req.SetQuery("symbols", `["BTCUSDT", "ETHUSDT"]`)
 
 	b_req, err := client.SetBinanceRequest(req)
 	if err != nil {
@@ -157,11 +112,11 @@ func TestGetExchangeInfo(t *testing.T) {
 		return
 	}
 
-	j := new(ExchangeInfo)
+	j := new(interface{})
 	err = json.Unmarshal(data, j)
 	if err != nil {
 		t.Error(err)
 		return
 	}
-	t.Logf("data: %#v", j)
+	t.Logf(binance_connect.PrettyPrint(j))
 }

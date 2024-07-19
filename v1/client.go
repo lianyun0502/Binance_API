@@ -13,7 +13,7 @@ import (
 	"time"
 )
 
-var baseURL = [6]string{
+var BaseURL = [6]string{
 	"https://api.binance.com",
 	"https://api-gcp.binance.com",
 	"https://api1.binance.com",
@@ -49,10 +49,10 @@ type Client struct {
 
 // Client factory function
 func NewClient(apiKey, secretKey, baseURL string) *Client {
-	url := "https://api.binance.com"
-	// if baseURL != "" {
-	// 	url = baseURL[2]
-	// }
+	url := baseURL
+	if baseURL == "" {
+		url = "https://api.binance.com"
+	}
 	return &Client{
 		APIKey:     apiKey,
 		SecretKey:  secretKey,
@@ -83,8 +83,24 @@ func NewBinanceRequest(method, endpoint string, sercType SecurityT) *Request {
 	}
 }
 
-type RequsetOption func(*url.Values)
+func (r *Request) SetQuery(key string, value interface{}) *Request {
+	if r.Query.Get(key) == "" {
+		r.Query.Add(key, fmt.Sprintf("%v", value))
+		return r
+	}
+	r.Query.Set(key, fmt.Sprintf("%v", value))
+	return r
+}
+func (r *Request) SetParam(key string, value interface{}) *Request{
+	if r.Form.Get(key) == "" {
+		r.Form.Add(key, fmt.Sprintf("%v", value))
+		return r
+	}
+	r.Form.Set(key, fmt.Sprintf("%v", value))
+	return r
+}
 
+type RequsetOption func(*url.Values)
 
 func (c *Client) SetBinanceRequest(r *Request, opts ...RequsetOption) (req *http.Request, err error) {
 	if r.SercType == Trade || r.SercType == UserData {
@@ -113,7 +129,7 @@ func (c *Client) SetBinanceRequest(r *Request, opts ...RequsetOption) (req *http
 	if err != nil {
 		return
 	}
-	log.Printf("full url: %s, body: %s", req.URL.String(), bodyString)
+	log.Printf("full url: %s\nbody: %s", req.URL.String(), PrettyPrint(r.Form))
 
 	req.Header.Set("User-Agent", fmt.Sprintf("%s/%s", "binance_connect", "v1"))
 	if bodyString != "" {
@@ -136,12 +152,13 @@ func (c *Client) Call(r *http.Request) (data []byte, err error) {
 		err = resp.Body.Close()
 	}()
 
-	log.Printf("response: %v", resp.Header)
 
 	if resp.StatusCode != 200 {
 		log.Printf("Error: %s", resp.Status)
 		return
 	}
+
+	log.Printf("response: %s", PrettyPrint(resp.Header))
 
 	data, err = io.ReadAll(resp.Body)
 
