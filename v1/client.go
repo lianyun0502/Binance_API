@@ -129,7 +129,7 @@ func (c *Client) SetBinanceRequest(r *Request, opts ...RequsetOption) (req *http
 	if err != nil {
 		return
 	}
-	log.Printf("full url: %s\nbody: %s", req.URL.String(), PrettyPrint(r.Form))
+	log.Printf("full url: %s\nrequese body: %s", req.URL.String(), PrettyPrint(r.Form))
 
 	req.Header.Set("User-Agent", fmt.Sprintf("%s/%s", "binance_connect", "v1"))
 	if bodyString != "" {
@@ -158,7 +158,7 @@ func (c *Client) Call(r *http.Request) (data []byte, err error) {
 		return
 	}
 
-	log.Printf("response: %s", PrettyPrint(resp.Header))
+	// log.Printf("response header: %s", PrettyPrint(resp.Header))
 
 	data, err = io.ReadAll(resp.Body)
 

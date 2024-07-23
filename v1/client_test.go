@@ -10,9 +10,10 @@ import (
 )
 
 var (
-	apiKey = "PkuSskgddMZuLdPV35rBdN1kqdtffKERnG0plDdTDqLIdqH1tfD4xavK1AjxNo1F"
-	secretKey = "1vs3rVyqEG64wDuWAQqlxY3ZclMAB3WjvVUTSdguz7IrWO7hyC9xeIjL8PtFSxPz"
-	testURL = "https://testnet.binance.vision"
+	apiKey = "xTz5GK0rSyPANKeQTR5o1zohOdF7DmPRGR2ReAFKNLj0GjoIacB2Ld5Sjzd2p8Wk"
+	secretKey = "Hvsqtth66iAyXw7lnbzQGdw0ZCLPru5MWZPllLbcAuHpGMPNiuWoxXAE6LjpKqNg"
+	// testURL = "https://testnet.binance.vision"
+	testURL = "https://api1.binance.com"
 )
 
 
