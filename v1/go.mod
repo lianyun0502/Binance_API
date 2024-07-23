@@ -3,6 +3,7 @@ module practice_go/binance_conn
 go 1.22.5
 
 require (
+	github.com/google/uuid v1.6.0
 	github.com/lxzan/gws v1.8.5
 	github.com/stretchr/testify v1.9.0
 )

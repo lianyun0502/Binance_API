@@ -1,9 +1,13 @@
 package binance_connect
 
-
 import (
+	"crypto/hmac"
+	"crypto/sha256"
+	"encoding/hex"
 	"encoding/json"
 	"reflect"
+
+	"github.com/google/uuid"
 )
 
 
@@ -11,6 +15,16 @@ func PrettyPrint(i interface{}) string {
 	s, _ := json.MarshalIndent(i, "", "  ")
 	return string(s)
 }
+
+func GetUUID() string  {
+    return uuid.NewString()
+}
+
+func GetSignature(secretKey string, data string) string {
+    mac := hmac.New(sha256.New, []byte(secretKey))
+    mac.Write([]byte(data))
+    return hex.EncodeToString(mac.Sum(nil))
+} 
 
 func IsEmpty(v interface{}) bool {
     // 使用 reflect 處理不同類型的「空值」判斷

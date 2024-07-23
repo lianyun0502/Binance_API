@@ -2,9 +2,6 @@ package binance_connect
 
 import (
 	"bytes"
-	"crypto/hmac"
-	"crypto/sha256"
-	// "encoding/json"
 	"fmt"
 	"io"
 	"log"
@@ -114,12 +111,7 @@ func (c *Client) SetBinanceRequest(r *Request, opts ...RequsetOption) (req *http
 		r.Body = bytes.NewBufferString(bodyString)
 	}
 	if r.SercType == Trade || r.SercType == UserData {
-		mac := hmac.New(sha256.New, []byte(c.SecretKey))
-		_, err = mac.Write([]byte(fmt.Sprintf("%s%s",queryString, bodyString))) // query string + body string 不需要加上 & 符号
-		if err != nil {
-			return 
-		}
-		r.Query.Set("signature", fmt.Sprintf("%x", mac.Sum(nil)))
+		r.Query.Set("signature", GetSignature(c.SecretKey, fmt.Sprintf("%s%s",queryString, bodyString)))
 		queryString = r.Query.Encode()
 	}
 
