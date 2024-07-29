@@ -38,17 +38,39 @@ func (ws *WebSocketAPI) StartLoop(){
 			}
 		}
 	}()
-	// go func() {
-	// 	select {
-	// 	case <-ws.StopCh:
-	// 	case <-ws.DoneCh:
-	// 	}
-	// }()
+}
+
+func (ws *WebSocketAPI) StopLoop(){
+	ws.Connector.NetConn().Close()
 }
 func (ws *WebSocketAPI) SendMessage(id string, resp_chan chan []byte, data []byte){
 	ws.resp_handlers[id] = resp_chan
 	ws.WriteCh <- data
 }
+
+type WsApiPingResponse struct {
+	ID string `json:"id"`
+	Method string `json:"method"`
+}
+
+func (ws *WebSocketAPI) PingServer() (resp interface{}, err error){
+	res := &WsApiPingResponse{ID: GetUUID(), Method: "ping"}
+	respCh := make(chan []byte)
+
+	data, _ := json.Marshal(res)
+
+	ws.SendMessage(res.ID, respCh, data)
+
+	data = <- respCh
+
+	err = json.Unmarshal(data, &resp)
+	if err != nil {
+		log.Println(err)
+		return
+	}
+	return
+}
+
 
 type WebSocketAPIEvent struct {
 	Err_Handler   func(err error)
@@ -68,8 +90,6 @@ func (event *WebSocketAPIEvent) OnPong(socket *gws.Conn, message []byte) {
 func (event *WebSocketAPIEvent) OnMessage(socket *gws.Conn, message *gws.Message) {
 	defer message.Close()
 	log.Println("OnMessage")
-	// fmt.Printf("recv: %s\n", message.Data.String())
-	// event.Ws_Handler(message.Data.Bytes())
 	resp := new(WsAPIErrorResponse)
 	data := message.Data.Bytes()
 	json.Unmarshal(data, &resp)
