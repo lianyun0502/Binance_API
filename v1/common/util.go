@@ -1,4 +1,4 @@
-package binance_connect
+package common
 
 import (
 	"crypto/hmac"
@@ -50,14 +50,14 @@ func IsEmpty(v interface{}) bool {
 
 type Timer struct {
 	Interval time.Duration
-	handle func()
+	Handler func()
 
 	stop chan struct{}
 	reset chan struct{}
 }
 func (hbt *Timer) Start(handle func()) {
 	if handle != nil {
-		hbt.handle = handle
+		hbt.Handler = handle
 	}
 	hbt.stop = make(chan struct{})
 	hbt.reset = make(chan struct{})
@@ -65,7 +65,7 @@ func (hbt *Timer) Start(handle func()) {
 		for {
 			select {
             case <-time.After(hbt.Interval):
-                hbt.handle()
+                hbt.Handler()
             case <-hbt.stop:
                 return
 			case <-hbt.reset:

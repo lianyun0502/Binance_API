@@ -1,4 +1,4 @@
-package binance_connect_test
+package binance_conn_test
 
 import (
 	"encoding/json"
@@ -6,8 +6,8 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/assert"
-
-	"practice_go/binance_conn"
+	"github.com/lianyun0502/exchange_conn/common"
+	"github.com/lianyun0502/exchange_conn/binance_conn"
 )
 
 type OrderBookResponse struct {
@@ -17,13 +17,13 @@ type OrderBookResponse struct {
 }
 func TestOrderBook(t *testing.T) {
 	assert := assert.New(t)
-	client := binance_connect.NewClient(
+	client := binance_conn.NewClient(
 		apiKey,
 		secretKey,
 		testURL,
 	)
 	// Test OrderBook
-	ob := new(binance_connect.OrderBook)
+	ob := new(binance_conn.OrderBook)
 
 	limit := 5
 
@@ -37,7 +37,7 @@ func TestOrderBook(t *testing.T) {
 		t.Error(err)
 		return
 	}
-	log.Println(binance_connect.PrettyPrint(j))
+	log.Println(common.PrettyPrint(j))
 	assert.Equal(limit, len(j.Bids))
 	assert.Equal(limit, len(j.Asks))
 }

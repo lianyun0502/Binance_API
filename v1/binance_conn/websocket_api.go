@@ -1,4 +1,4 @@
-package binance_connect
+package binance_conn
 
 import (
 	// "fmt"
@@ -8,6 +8,7 @@ import (
 	"errors"
 
 	"github.com/lxzan/gws"
+	"github.com/lianyun0502/exchange_conn/common"
 )
 
 type WsAPIErrorResponse struct {
@@ -54,7 +55,7 @@ type WsApiPingResponse struct {
 }
 
 func (ws *WebSocketAPI) PingServer() (resp interface{}, err error){
-	res := &WsApiPingResponse{ID: GetUUID(), Method: "ping"}
+	res := &WsApiPingResponse{ID: common.GetUUID(), Method: "ping"}
 	respCh := make(chan []byte)
 
 	data, _ := json.Marshal(res)

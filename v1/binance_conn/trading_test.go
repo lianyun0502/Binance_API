@@ -1,25 +1,27 @@
-package binance_connect_test
+package binance_conn_test
 
 import (
 	"encoding/json"
 	"log"
-	"practice_go/binance_conn"
-	enums "practice_go/binance_conn/Enums"
 	"testing"
 
+	"github.com/lianyun0502/exchange_conn/binance_conn"
+	"github.com/lianyun0502/exchange_conn/common"
+	"github.com/lianyun0502/exchange_conn/binance_conn/enums"
+	
 	"github.com/stretchr/testify/assert"
 )
 
 
 func TestNewOrder(t *testing.T) {
 	assert := assert.New(t)
-	client := binance_connect.NewClient(
+	client := binance_conn.NewClient(
 		apiKey,
 		secretKey,
 		testURL,
 	)
 	// Test NewOrder
-	no := new(binance_connect.NewOrder)
+	no := new(binance_conn.NewOrder)
 	
 	data, err := no.Symbol("BTCUSDT").Side(enums.Buy).Type(enums.Limit).TimeInForce(enums.FOK).Quantity(0.1).Price(10000).Do(client)
 	if err != nil {
@@ -27,7 +29,7 @@ func TestNewOrder(t *testing.T) {
 	}
 	var j interface{}
 	err = json.Unmarshal(data, &j)
-	log.Println(binance_connect.PrettyPrint(j))
+	log.Println(common.PrettyPrint(j))
 	if err != nil {
 		t.Error(err)
 		return

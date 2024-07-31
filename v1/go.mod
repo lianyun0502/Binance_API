@@ -1,4 +1,4 @@
-module practice_go/binance_conn
+module github.com/lianyun0502/exchange_conn
 
 go 1.22.5
 

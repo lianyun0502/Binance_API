@@ -1,4 +1,4 @@
-package binance_connect
+package binance_conn
 
 import (
 	"bytes"
@@ -8,6 +8,9 @@ import (
 	"net/http"
 	"net/url"
 	"time"
+
+	"github.com/lianyun0502/exchange_conn/common"
+
 )
 
 var BaseURL = [6]string{
@@ -99,6 +102,22 @@ func (r *Request) SetParam(key string, value interface{}) *Request{
 
 type RequsetOption func(*url.Values)
 
+func (c *Client) Request(method, endpoint string, key, signed bool, opts ...any) *Request {
+	sercType := None
+	switch{
+		case key && signed:
+			sercType = Trade
+		case key && !signed:
+			sercType = UserStream
+	}
+	req := NewBinanceRequest(method, endpoint, sercType)
+	return req
+}
+
+func (c *Client) SetRequest(r *Request) (req *http.Request, err error) {
+	return c.SetBinanceRequest(r)
+}
+
 func (c *Client) SetBinanceRequest(r *Request, opts ...RequsetOption) (req *http.Request, err error) {
 	if r.SercType == Trade || r.SercType == UserData {
 		r.Query.Set("timestamp", fmt.Sprintf("%v",time.Now().UnixNano()/int64(time.Millisecond)))
@@ -111,7 +130,7 @@ func (c *Client) SetBinanceRequest(r *Request, opts ...RequsetOption) (req *http
 		r.Body = bytes.NewBufferString(bodyString)
 	}
 	if r.SercType == Trade || r.SercType == UserData {
-		r.Query.Set("signature", GetSignature(c.SecretKey, fmt.Sprintf("%s%s",queryString, bodyString)))
+		r.Query.Set("signature", common.GetSignature(c.SecretKey, fmt.Sprintf("%s%s",queryString, bodyString)))
 		queryString = r.Query.Encode()
 	}
 
@@ -121,7 +140,7 @@ func (c *Client) SetBinanceRequest(r *Request, opts ...RequsetOption) (req *http
 	if err != nil {
 		return
 	}
-	log.Printf("full url: %s\nrequese body: %s", req.URL.String(), PrettyPrint(r.Form))
+	log.Printf("full url: %s\nrequese body: %s", req.URL.String(), common.PrettyPrint(r.Form))
 
 	req.Header.Set("User-Agent", fmt.Sprintf("%s/%s", "binance_connect", "v1"))
 	if bodyString != "" {

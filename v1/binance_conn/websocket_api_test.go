@@ -1,10 +1,11 @@
-package binance_connect_test
+package binance_conn_test
 
 import (
 	"log"
 	"testing"
 	"github.com/stretchr/testify/assert"
-	"practice_go/binance_conn"
+	"github.com/lianyun0502/exchange_conn/common"
+	"github.com/lianyun0502/exchange_conn/binance_conn"
 )
 
 var errHandler = func(err error) {
@@ -21,7 +22,7 @@ var errHandler = func(err error) {
 
 func TestWsApiPing(t *testing.T) {
 	assert := assert.New(t)
-	client, err := binance_connect.NewWebSocketAPI(
+	client, err := binance_conn.NewWebSocketAPI(
 		apiKey,
 		secretKey,
 		"wss://testnet.binance.vision/ws-api/v3",
@@ -38,7 +39,7 @@ func TestWsApiPing(t *testing.T) {
 			t.Error(err)
 			return
 		}
-		data :=  binance_connect.PrettyPrint(resp)
+		data :=  common.PrettyPrint(resp)
 		log.Printf("response:\n%s", data)
 		assert.NotEqual("{}", data)
 	}

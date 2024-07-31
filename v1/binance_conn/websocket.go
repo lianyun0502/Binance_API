@@ -1,4 +1,4 @@
-package binance_connect
+package binance_conn
 
 import (
 	// "fmt"
@@ -6,6 +6,7 @@ import (
 	"time"
 
 	"github.com/lxzan/gws"
+	"github.com/lianyun0502/exchange_conn/common"
 )
 
 type ErrHandler func(err error)
@@ -17,14 +18,13 @@ type WebSocketEvent struct{
 
 	client *WsClient
 
-	pingTimer Timer
+	pingTimer common.Timer
 }
 func (conn *WebSocketEvent) OnOpen(socket *gws.Conn) {
 	log.Println("OnOpen")
-
-	conn.pingTimer = Timer{
+	conn.pingTimer = common.Timer{
 		Interval: 10*time.Second,
-		handle: func() { 
+		Handler: func() { 
 			log.Println("Ping server timeout") 
 			socket.NetConn().Close()
 		},

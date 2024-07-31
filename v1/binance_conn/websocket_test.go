@@ -1,4 +1,4 @@
-package binance_connect_test
+package binance_conn_test
 
 import (
 	"encoding/json"
@@ -6,7 +6,7 @@ import (
 	// "github.com/stretchr/testify/assert"
 	"fmt"
 	"log"
-	"practice_go/binance_conn"
+	"github.com/lianyun0502/exchange_conn/binance_conn"
 	"time"
 )
 
@@ -29,9 +29,9 @@ func TestWsClient(t *testing.T) {
 	// url := "wss://ws-api.binance.com:443/ws-api/v3"
 	// url := "wss://stream.binance.com:9443/stream?streams=btcusdt@trade/btcusdt@aggTrade"
 
-	client, err := binance_connect.NewWsClient(
+	client, err := binance_conn.NewWsClient(
 		url, 
-		&binance_connect.WebSocketEvent{
+		&binance_conn.WebSocketEvent{
 			Err_Handler: errorHandler,
 			Ws_Handler: wsHandler,
 		},

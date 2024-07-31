@@ -1,22 +1,23 @@
-package binance_connect_test
+package binance_conn_test
 
 import (
 	"encoding/json"
 	"log"
 	"testing"
-	"practice_go/binance_conn"
+	"github.com/lianyun0502/exchange_conn/binance_conn"
+	"github.com/lianyun0502/exchange_conn/common"
 	"github.com/stretchr/testify/assert"
 )
 
 func TestCreateListenKey(t *testing.T) {
 	assert := assert.New(t)
-	client := binance_connect.NewClient(
+	client := binance_conn.NewClient(
 		apiKey,
 		secretKey,
 		testURL,
 	)
 
-	cak := new(binance_connect.CreateAPIKeyService)
+	cak := new(binance_conn.CreateAPIKeyService)
 	
 	data, err := cak.Do(client)
 	if err != nil {
@@ -24,7 +25,7 @@ func TestCreateListenKey(t *testing.T) {
 	}
 	var j interface{}
 	err = json.Unmarshal(data, &j)
-	log.Println(binance_connect.PrettyPrint(j))
+	log.Println(common.PrettyPrint(j))
 	if err != nil {
 		t.Error(err)
 		return

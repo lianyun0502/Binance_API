@@ -1,4 +1,4 @@
-package binance_connect
+package binance_conn
 
 import (
 	"net/http"

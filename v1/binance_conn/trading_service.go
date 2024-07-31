@@ -1,8 +1,8 @@
-package binance_connect
+package binance_conn
 
 import (
 	"net/http"
-	enums "practice_go/binance_conn/Enums"
+	"github.com/lianyun0502/exchange_conn/binance_conn/enums"
 	"errors"
 )
 

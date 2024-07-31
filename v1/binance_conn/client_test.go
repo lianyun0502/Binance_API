@@ -1,11 +1,13 @@
-package binance_connect_test
+package binance_conn_test
 
 import (
 	"encoding/json"
 	"net/http"
 	"testing"
 
-	"practice_go/binance_conn"
+	"github.com/lianyun0502/exchange_conn/common"
+	"github.com/lianyun0502/exchange_conn/binance_conn"
+	
 
 )
 
@@ -18,16 +20,16 @@ var (
 
 
 func TestPingAPIServer(t *testing.T) {
-	client := binance_connect.NewClient(
+	client := binance_conn.NewClient(
 		apiKey, 
 		secretKey, 
 		testURL,
 	)
 
-	req := binance_connect.NewBinanceRequest(
+	req := binance_conn.NewBinanceRequest(
 		http.MethodGet,
 		"/api/v3/ping",
-		binance_connect.None,
+		binance_conn.None,
 	)
 
 	b_req, err := client.SetBinanceRequest(req)
@@ -44,7 +46,7 @@ func TestPingAPIServer(t *testing.T) {
 	var j interface{}
 
 	if string(data) != "{}" {
-		t.Errorf(binance_connect.PrettyPrint(j))
+		t.Errorf(common.PrettyPrint(j))
 	}
 }
 
@@ -53,16 +55,16 @@ type CheckServerTimeResponce struct {
 }
 
 func TestCheckServerTime(t *testing.T) {
-	client := binance_connect.NewClient(
+	client := binance_conn.NewClient(
 		apiKey, 
 		secretKey, 
 		testURL,
 	)
 
-	req := binance_connect.NewBinanceRequest(
+	req := binance_conn.NewBinanceRequest(
 		http.MethodGet,
 		"/api/v3/time",
-		binance_connect.None,
+		binance_conn.None,
 	)
 
 	b_req, err := client.SetBinanceRequest(req)
@@ -83,20 +85,20 @@ func TestCheckServerTime(t *testing.T) {
 		t.Error(err)
 		return
 	}
-	t.Logf(binance_connect.PrettyPrint(j))
+	t.Logf(common.PrettyPrint(j))
 }
 
 func TestGetExchangeInfo(t *testing.T) {
-	client := binance_connect.NewClient(
+	client := binance_conn.NewClient(
 		apiKey, 
 		secretKey, 
 		testURL,
 	)
 
-	req := binance_connect.NewBinanceRequest(
+	req := binance_conn.NewBinanceRequest(
 		http.MethodGet,
 		"/api/v3/exchangeInfo",
-		binance_connect.None,
+		binance_conn.None,
 	)
 
 	req.SetQuery("symbols", `["BTCUSDT", "ETHUSDT"]`)
@@ -119,5 +121,5 @@ func TestGetExchangeInfo(t *testing.T) {
 		t.Error(err)
 		return
 	}
-	t.Logf(binance_connect.PrettyPrint(j))
+	t.Logf(common.PrettyPrint(j))
 }
