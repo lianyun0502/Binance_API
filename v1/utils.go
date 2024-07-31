@@ -6,6 +6,7 @@ import (
 	"encoding/hex"
 	"encoding/json"
 	"reflect"
+    "time"
 
 	"github.com/google/uuid"
 )
@@ -45,4 +46,38 @@ func IsEmpty(v interface{}) bool {
         // 對於其他類型，返回 false 表示無法判斷或不為「空值」
         return false
     }
+}
+
+type Timer struct {
+	Interval time.Duration
+	handle func()
+
+	stop chan struct{}
+	reset chan struct{}
+}
+func (hbt *Timer) Start(handle func()) {
+	if handle != nil {
+		hbt.handle = handle
+	}
+	hbt.stop = make(chan struct{})
+	hbt.reset = make(chan struct{})
+	go func() {
+		for {
+			select {
+            case <-time.After(hbt.Interval):
+                hbt.handle()
+            case <-hbt.stop:
+                return
+			case <-hbt.reset:
+				continue
+            }
+		}
+	}()
+}
+func (hbt *Timer) Stop() {
+	hbt.stop <- struct{}{}
+}	
+
+func (hbt *Timer) Reset() {
+	hbt.reset <- struct{}{}
 }

@@ -11,64 +11,119 @@ import (
 type ErrHandler func(err error)
 type WsHandler func(message []byte)
 
-type WebSocket struct{
-	Err_Handler ErrHandler
-	Ws_Handler WsHandler
-}
+type WebSocketEvent struct{
+	Err_Handler func(err error)
+	Ws_Handler func(message []byte)
 
-func (conn *WebSocket) OnOpen(socket *gws.Conn) {
-	log.Println("OnOpen")
+	client *WsClient
+
+	pingTimer Timer
 }
-func (conn *WebSocket) OnPing(socket *gws.Conn, message []byte) {
+func (conn *WebSocketEvent) OnOpen(socket *gws.Conn) {
+	log.Println("OnOpen")
+
+	conn.pingTimer = Timer{
+		Interval: 10*time.Second,
+		handle: func() { 
+			log.Println("Ping server timeout") 
+			socket.NetConn().Close()
+		},
+	}
+	conn.pingTimer.Start(nil)
+	socket.WritePing([]byte("ping"))
+}
+func (conn *WebSocketEvent) OnPing(socket *gws.Conn, message []byte) {
 	log.Println("OnPing")
 	socket.WritePong(message)
 }
-func (conn *WebSocket) OnPong(socket *gws.Conn, message []byte) {
+func (conn *WebSocketEvent) OnPong(socket *gws.Conn, message []byte) {
 	log.Println("OnPong")
+	conn.pingTimer.Stop()
+	go func () {
+		time.Sleep(5*time.Second)
+		socket.WritePing([]byte("ping"))
+		conn.pingTimer.Start(nil)
+	}()
+	
 }
-func (conn *WebSocket) OnMessage(socket *gws.Conn, message *gws.Message) {
+func (conn *WebSocketEvent) OnMessage(socket *gws.Conn, message *gws.Message) {
 	defer message.Close()
 	log.Println("OnMessage")
-	// fmt.Printf("recv: %s\n", message.Data.String())
+	if conn.Ws_Handler == nil { return }
 	conn.Ws_Handler(message.Data.Bytes())
 }
-func (conn *WebSocket) OnClose(socket *gws.Conn, err error) {
+func (conn *WebSocketEvent) OnClose(socket *gws.Conn, err error) {
 	log.Println("OnClose")
+	conn.pingTimer.Stop()
+	if conn.Err_Handler == nil { return }
 	if err != nil {
 		conn.Err_Handler(err)
 	}
+	conn.client.ReconnectSignal <- struct{}{}
 }
 
+type WsClient struct {
+	clientOption *gws.ClientOption
+	wsEvent gws.Event
+	conn *gws.Conn
+	DoneSignal chan struct{}
+ 	stopSignal chan struct{}
+	ReconnectSignal chan struct{}
+}
 
-func WsClient(url string, wsHandler WsHandler, errHandler ErrHandler) (doneCh, stopCh chan struct{}, err error){
+func (client *WsClient) Reconnect() (err error) {
+	client.conn, _, err = gws.NewClient(client.wsEvent, client.clientOption)
+	if err == nil{
+		client.StartLoop()
+	}
+	return
+}
+
+func (client *WsClient) StartLoop() {
+	go func() {
+		client.conn.ReadLoop()
+	}()
+}
+func (client *WsClient) Close() {
+	client.stopSignal <- struct{}{}
+}
+
+func NewWsClient(url string, wsEvent *WebSocketEvent) (client *WsClient, err error){
+	clientOption := gws.ClientOption{
+		ReadBufferSize: 655350,
+		Addr : url,
+		HandshakeTimeout: 45*time.Second,
+		PermessageDeflate: gws.PermessageDeflate{
+			Enabled: true,
+			ServerContextTakeover: true,
+			ClientContextTakeover: true,
+		},
+	}
+	
 	conn, _, err := gws.NewClient(
-		&WebSocket{
-			Err_Handler: errHandler,
-			Ws_Handler: wsHandler,
-		}, 
-		&gws.ClientOption{
-			ReadBufferSize: 655350,
-			Addr : url,
-			HandshakeTimeout: 45*time.Second,
-			PermessageDeflate: gws.PermessageDeflate{
-				Enabled: true,
-				ServerContextTakeover: true,
-				ClientContextTakeover: true,
-			},
-	})
+		wsEvent,
+		&clientOption,
+	)
 
 	if err != nil {
-		return nil, nil, err
+		return nil, err
 	}
 
-	go conn.ReadLoop()
-	doneCh = make(chan struct{})
-	stopCh = make(chan struct{})
+	client = &WsClient{
+		clientOption: &clientOption,
+		wsEvent: wsEvent,
+		conn: conn,
+		DoneSignal: make(chan struct{}),
+		stopSignal: make(chan struct{}),
+		ReconnectSignal: make(chan struct{}),
+	}
+	wsEvent.client = client
+
 	go func() {
-		select {
-		case <-stopCh:
-		case <-doneCh:
-		}
+		<-client.stopSignal
+		client.conn.NetConn().Close()
+		client.DoneSignal <- struct{}{}
 	}()
+
 	return
 }
